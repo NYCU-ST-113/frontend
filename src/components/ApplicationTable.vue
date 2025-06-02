@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ApplicationStatus, ApplicationType, type ApplicationForm } from '@/types/application'
-import { useToast } from 'primevue/usetoast'
+// import { useToast } from 'primevue/usetoast'
 import { onMounted, ref } from 'vue'
 
 // PrimeVue 組件
@@ -12,7 +12,7 @@ import Toast from 'primevue/toast'
 
 const applications = ref()
 const expandedRows = ref({})
-const toast = useToast()
+// const toast = useToast()
 
 const nestedColumns = {
   department: '系所單位',
@@ -139,9 +139,9 @@ const getTypeText = (type: string) => {
 }
 
 // 檢查是否可以重新送出
-const canResubmit = (application: any): boolean => {
-  return false // 永遠不允許重新送出
-}
+// const canResubmit = (application: any): boolean => {
+//   return false // 永遠不允許重新送出
+// }
 
 // 取得操作按鈕樣式
 const getActionButtonSeverity = (application: any): string => {

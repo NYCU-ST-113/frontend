@@ -56,14 +56,20 @@ const items = ref([
         </template>
         <template #end>
           <div class="flex items-center gap-2">
-            <Button v-slot="slotProps" as-child outlined size="small" severity="secondary">
-              <RouterLink to="/" :class="slotProps.class">
+            <Button as-child outlined size="small" severity="secondary">
+              <RouterLink
+                to="/"
+                class="p-button p-button-outlined p-button-secondary p-button-sm flex items-center gap-2"
+              >
                 <i class="pi pi-angle-left" />
                 <span>使用者</span>
               </RouterLink>
             </Button>
-            <Button v-slot="slotProps" as-child outlined size="small" severity="secondary">
-              <RouterLink to="/admin" :class="slotProps.class">
+            <Button as-child outlined size="small" severity="secondary">
+              <RouterLink
+                to="/admin"
+                class="p-button p-button-outlined p-button-secondary p-button-sm flex items-center gap-2"
+              >
                 <i class="pi pi-angle-right" />
                 <span>管理者</span>
               </RouterLink>

@@ -14,7 +14,7 @@ import Divider from 'primevue/divider'
 import Tag from 'primevue/tag'
 import Toast from 'primevue/toast'
 
-const applications = ref()
+const applications = ref<any[]>([])
 const expandedRows = ref({})
 const toast = useToast()
 
@@ -91,21 +91,10 @@ onMounted(() => {
   ]
 
   // 只顯示已通過審核的申請
-  applications.value = applications.value.filter((app) => app.status === ApplicationStatus.approved)
+  applications.value = applications.value.filter(
+    (app: any) => app.status === ApplicationStatus.approved,
+  )
 })
-
-const getApplicationStatusSeverity = (status: string) => {
-  switch (status) {
-    case ApplicationStatus.approved:
-      return 'success'
-    case ApplicationStatus.pending:
-      return 'info'
-    case ApplicationStatus.canceled:
-      return 'danger'
-    default:
-      return 'secondary'
-  }
-}
 
 const getPaymentStatusSeverity = (status: string | null) => {
   if (!status) return 'secondary'

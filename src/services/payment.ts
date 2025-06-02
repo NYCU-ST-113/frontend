@@ -1,7 +1,7 @@
-import type { Payment } from '@/types/payment'
+import type { Payment, PaymentCreateRequest } from '@/types/payment'
 import * as api from './api/payment'
 
-export const createPayment = async (payment: Payment) => {
+export const createPayment = async (payment: PaymentCreateRequest) => {
   const response = await api.createPayment(payment)
   return response.data
 }
