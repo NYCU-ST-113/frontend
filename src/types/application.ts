@@ -45,6 +45,6 @@ export interface ApplicationUpdateRequest {
 }
 
 export interface ApplicationResponse {
-  id: string
+  application_id: string
   message: string
 }

@@ -5,7 +5,7 @@
 
     <div class="flex">
       <!-- Main Content -->
-      <Main class="flex-1 px-12 py-8">
+      <Main class="flex-1 px-12 py-4">
         <Transition name="fade" mode="out-in">
           <router-view />
         </Transition>

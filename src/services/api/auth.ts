@@ -19,3 +19,8 @@ export const callback = async (code: string) => {
   })
   return response.data
 }
+
+export const getProfile = async () => {
+  const response = await http.get(`${prefix}/me`)
+  return response.data
+}

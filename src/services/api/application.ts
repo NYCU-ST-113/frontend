@@ -16,6 +16,10 @@ export const getApplicationById = async (id: string): Promise<AxiosResponse> => 
   return await http.get(`/${prefix}/${id}`)
 }
 
+export const getUserApplications = async (userId: string): Promise<AxiosResponse> => {
+  return await http.get(`/${prefix}/my-applications`, { headers: { 'X-User-Id': userId } })
+}
+
 export const updateApplication = async (
   id: string,
   data: ApplicationForm,
@@ -27,6 +31,8 @@ export const deleteApplication = async (id: string): Promise<AxiosResponse> => {
   return await http.delete(`/${prefix}/${id}`)
 }
 
-export const approveApplication = async (id: string): Promise<AxiosResponse> => {
-  return await http.put(`/${prefix}/${id}/approve`)
+// TODO: approve application?
+
+export const rejectApplication = async (id: string): Promise<AxiosResponse> => {
+  return await http.put(`/${prefix}/cancel/${id}`)
 }

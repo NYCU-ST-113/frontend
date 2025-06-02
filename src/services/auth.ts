@@ -14,3 +14,8 @@ export const callback = async (code: string) => {
   const data = await api.callback(code)
   localStorage.setItem('token', data['jwt-token'])
 }
+
+export const getProfile = async () => {
+  const data = await api.getProfile()
+  return data
+}

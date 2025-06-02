@@ -40,7 +40,9 @@ export const deleteApplication = async (id: string): Promise<ApplicationResponse
   return response.data
 }
 
-export const approveApplication = async (id: string): Promise<ApplicationResponse> => {
-  const response = await api.approveApplication(id)
-  return response.data
+// TODO: approve application?
+
+export const rejectApplication = async (id: string): Promise<ApplicationResponse> => {
+  const response = await api.rejectApplication(id)
+  return response.data?.application_id
 }
