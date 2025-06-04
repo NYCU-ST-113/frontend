@@ -1,0 +1,18 @@
+{
+  "cookies": [],
+  "origins": [
+    {
+      "origin": "http://localhost:5173",
+      "localStorage": [
+        {
+          "name": "token",
+          "value": "test-token"
+        },
+        {
+          "name": "user",
+          "value": "{\"id\":1,\"name\":\"Test User\",\"email\":\"test@example.com\",\"role\":\"user\"}"
+        }
+      ]
+    }
+  ]
+}
