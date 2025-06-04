@@ -15,16 +15,22 @@ declare module 'vue' {
     AppSidebar: typeof import('./src/components/AppSidebar.vue')['default']
     Badge: typeof import('primevue/badge')['default']
     Button: typeof import('primevue/button')['default']
+    Card: typeof import('primevue/card')['default']
+    Chart: typeof import('primevue/chart')['default']
     Image: typeof import('primevue/image')['default']
     Menu: typeof import('primevue/menu')['default']
     Menubar: typeof import('primevue/menubar')['default']
+    Message: typeof import('primevue/message')['default']
     PaymentTable: typeof import('./src/components/PaymentTable.vue')['default']
+    ProgressBar: typeof import('primevue/progressbar')['default']
     ProgressSpinner: typeof import('primevue/progressspinner')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    Tag: typeof import('primevue/tag')['default']
+    Timeline: typeof import('primevue/timeline')['default']
     Toast: typeof import('primevue/toast')['default']
   }
-  export interface ComponentCustomProperties {
+  export interface GlobalDirectives {
     Ripple: typeof import('primevue/ripple')['default']
   }
 }

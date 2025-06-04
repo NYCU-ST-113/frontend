@@ -6,15 +6,6 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { getAllApplications } from '@/services/application'
 import { getAllPayments } from '@/services/payment'
 import { ApplicationStatus } from '@/types/application'
-import Badge from 'primevue/badge'
-import Button from 'primevue/button'
-import Card from 'primevue/card'
-import Chart from 'primevue/chart'
-import Message from 'primevue/message'
-import ProgressBar from 'primevue/progressbar'
-import Tag from 'primevue/tag'
-import Timeline from 'primevue/timeline'
-import Toast from 'primevue/toast'
 
 // 定義資料類型
 interface SystemBanner {
@@ -35,7 +26,7 @@ interface Announcement {
   isRead: boolean
 }
 
-interface ApplicationStatus {
+interface ApplicationStatsType {
   pending: number
   approved: number
   rejected: number
@@ -84,7 +75,7 @@ const systemBanner = ref<SystemBanner | null>(null)
 const announcements = ref<Announcement[]>([])
 
 // 申請狀態統計
-const applicationStats = reactive<ApplicationStatus>({
+const applicationStats = reactive<ApplicationStatsType>({
   pending: 0,
   approved: 0,
   rejected: 0,
