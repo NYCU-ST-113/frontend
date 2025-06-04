@@ -27,7 +27,7 @@ export const callback = async (code: string) => {
 }
 
 export const getProfile = async () => {
-  const data = await api.getProfile()
-  console.log('getProfile', data)
-  return data.user
+  const response = await api.getProfile()
+  console.log('getProfile', response)
+  return response.data.data.user
 }

@@ -18,6 +18,7 @@ export const getAllPayments = async (): Promise<Payment[]> => {
     email: payment.email,
     applicationReason: payment.application_reason,
     status: payment.status,
+    createdAt: payment.created_at
   }))
 
   return data || []
@@ -35,6 +36,7 @@ export const getUserPayments = async (userId: string): Promise<Payment[]> => {
     email: payment.email,
     applicationReason: payment.application_reason,
     status: payment.status,
+    createdAt: payment.created_at
   }))
 
   return data || []
