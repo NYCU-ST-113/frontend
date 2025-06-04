@@ -5,11 +5,11 @@
 
     <div class="flex">
       <!-- Main Content -->
-      <Main class="flex-1 px-12 py-4">
+      <main class="flex-1 md:px-12 md:py-4">
         <Transition name="fade" mode="out-in">
-          <router-view />
+          <RouterView />
         </Transition>
-      </Main>
+      </main>
     </div>
   </div>
 </template>
@@ -21,11 +21,12 @@ import AppNavbar from '../components/AppNavbar.vue'
 <style scoped>
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 0.5s ease;
+  transition: opacity 0.8s ease;
 }
 
 .fade-enter-from,
 .fade-leave-to {
+  transition: none;
   opacity: 0;
 }
 </style>

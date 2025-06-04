@@ -39,7 +39,7 @@ const menuItems = ref<MenuItem[]>([
 <template>
   <aside class="card flex justify-center">
     <Menu
-      class="w-full md:w-40"
+      class="w-full md:w-40 hidden md:flex"
       :model="menuItems"
       :pt="{ root: 'rounded-none border-r-1 border-y-0' }"
     />

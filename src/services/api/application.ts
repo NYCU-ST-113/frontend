@@ -1,15 +1,15 @@
-import type { ApplicationCreateRequest, ApplicationForm } from '@/types/application'
+import type { ApplicationCreateRequest, ApplicationsResponse } from '@/types/application'
 import type { AxiosResponse } from 'axios'
 import http from './http'
 
-const prefix = '/apply'
+const prefix = 'apply'
 
 export const createApplication = async (data: ApplicationCreateRequest): Promise<AxiosResponse> => {
-  return await http.post(`/${prefix}`, data)
+  return await http.post(`/${prefix}/apply`, data)
 }
 
-export const getAllApplications = async (): Promise<AxiosResponse> => {
-  return await http.get(`/${prefix}`)
+export const getAllApplications = async (): Promise<ApplicationsResponse> => {
+  return await http.get(`/${prefix}/getAll`)
 }
 
 export const getApplicationById = async (id: string): Promise<AxiosResponse> => {
@@ -22,7 +22,7 @@ export const getUserApplications = async (userId: string): Promise<AxiosResponse
 
 export const updateApplication = async (
   id: string,
-  data: ApplicationForm,
+  data: ApplicationCreateRequest,
 ): Promise<AxiosResponse> => {
   return await http.put(`/${prefix}/${id}`, data)
 }
@@ -31,8 +31,10 @@ export const deleteApplication = async (id: string): Promise<AxiosResponse> => {
   return await http.delete(`/${prefix}/${id}`)
 }
 
-// TODO: approve application?
+export const approveApplication = async (id: string): Promise<AxiosResponse> => {
+  return await http.put(`/${prefix}/approved/${id}`)
+}
 
 export const rejectApplication = async (id: string): Promise<AxiosResponse> => {
-  return await http.put(`/${prefix}/cancel/${id}`)
+  return await http.put(`/${prefix}/rejected/${id}`)
 }

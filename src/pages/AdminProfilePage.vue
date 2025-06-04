@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Form } from '@primevue/forms'
 import { useToast } from 'primevue/usetoast'
-import { reactive, ref } from 'vue'
+import { onMounted, reactive, ref } from 'vue'
 
 // PrimeVue 組件
 import Button from 'primevue/button'
@@ -13,7 +13,6 @@ import Toast from 'primevue/toast'
 
 const toast = useToast()
 
-// 表單初始值
 const initialValues = reactive({
   username: '',
   name: '',
@@ -24,47 +23,40 @@ const initialValues = reactive({
   extensionNumber: '',
 })
 
-// 載入狀態
 const isLoading = ref(false)
+const formKey = ref(0)
 
-// 表單驗證規則
 const resolver = ({ values }: { values: any }) => {
   const errors: { [key: string]: any } = {}
 
-  // 工號驗證
   if (!values.username?.trim()) {
     errors.username = [{ message: '工號為必填欄位' }]
   } else if (values.username.length < 3) {
     errors.username = [{ message: '工號至少需要3個字元' }]
   }
 
-  // 姓名驗證
   if (!values.name?.trim()) {
     errors.name = [{ message: '姓名為必填欄位' }]
   } else if (values.name.length < 2) {
     errors.name = [{ message: '姓名至少需要2個字元' }]
   }
 
-  // 電話驗證
   if (!values.phone?.trim()) {
     errors.phone = [{ message: '聯絡電話為必填欄位' }]
   } else if (!/^[0-9\-\+\(\)\s#ext]+$/.test(values.phone)) {
     errors.phone = [{ message: '請輸入正確的電話號碼格式' }]
   }
 
-  // Email 驗證
   if (!values.email?.trim()) {
     errors.email = [{ message: '電子郵件為必填欄位' }]
   } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email)) {
     errors.email = [{ message: '請輸入正確的電子郵件格式' }]
   }
 
-  // 部門驗證
   if (!values.department?.trim()) {
     errors.department = [{ message: '部門為必填欄位' }]
   }
 
-  // 職位驗證
   if (!values.position?.trim()) {
     errors.position = [{ message: '職位為必填欄位' }]
   }
@@ -75,7 +67,6 @@ const resolver = ({ values }: { values: any }) => {
   }
 }
 
-// 表單提交處理
 const onFormSubmit = async ({ valid, values }: { valid: boolean; values: any }) => {
   console.log('Form submitted with values:', values)
 
@@ -92,10 +83,8 @@ const onFormSubmit = async ({ valid, values }: { valid: boolean; values: any }) 
   isLoading.value = true
 
   try {
-    // 模擬 API 呼叫
     await new Promise((resolve) => setTimeout(resolve, 2000))
 
-    // 更新 initialValues 以反映最新的資料
     Object.assign(initialValues, values)
 
     toast.add({
@@ -117,11 +106,12 @@ const onFormSubmit = async ({ valid, values }: { valid: boolean; values: any }) 
   }
 }
 
-// 重置表單
 const resetForm = () => {
   Object.keys(initialValues).forEach((key) => {
     ;(initialValues as any)[key] = ''
   })
+
+  formKey.value++
 
   toast.add({
     severity: 'info',
@@ -131,26 +121,30 @@ const resetForm = () => {
   })
 }
 
-// 載入現有資料（模擬）
 const loadExistingData = () => {
-  // 模擬載入現有的審核人員資料
   Object.assign(initialValues, {
     username: 'REV001',
-    name: '張審核',
+    name: '張三',
     phone: '03-5712121#1234',
-    email: 'zhang.reviewer@nycu.edu.tw',
+    email: 'zhang@nycu.edu.tw',
     department: '教務處',
     position: '專員',
     extensionNumber: '1234',
   })
 
-  toast.add({
-    severity: 'info',
-    summary: '資料已載入',
-    detail: '現有審核人員資料已載入表單',
-    life: 2000,
-  })
+  formKey.value++
+
+  // toast.add({
+  //   severity: 'info',
+  //   summary: '資料已載入',
+  //   detail: '現有審核人員資料已載入表單',
+  //   life: 2000,
+  // })
 }
+
+onMounted(() => {
+  loadExistingData()
+})
 </script>
 
 <template>
@@ -169,6 +163,7 @@ const loadExistingData = () => {
               <i class="pi pi-user-edit text-blue-600 text-xl"></i>
               <h2 class="text-xl font-semibold text-gray-800">審核人員資料</h2>
             </div>
+            <!--
             <Button
               label="載入現有資料"
               icon="pi pi-refresh"
@@ -176,11 +171,13 @@ const loadExistingData = () => {
               size="small"
               @click="loadExistingData"
             />
+            -->
           </div>
         </template>
 
         <template #content>
           <Form
+            :key="formKey"
             v-slot="$form"
             :resolver
             :initial-values="initialValues"

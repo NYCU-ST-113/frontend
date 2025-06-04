@@ -24,24 +24,38 @@ export interface ApplicationForm {
   supervisor_name: string
   supervisor_id: string
   supervisor_email: string
-  apply_date: Date
+  apply_date: string
 
   status: ApplicationStatus
+}
+
+export interface DnsForm {
+  applicant_unit: string
+  domain_name: string
+  application_project: string
+  dns_manage_account: string
+  reason: string
 }
 
 export interface Application {
   id: string
   type: ApplicationType
-  form: ApplicationForm
+  base: ApplicationForm
+  extra: DnsForm
 }
 
 export interface ApplicationCreateRequest {
   application_type: ApplicationType
   baseForm: ApplicationForm
+  additionForm: DnsForm
 }
 
 export interface ApplicationUpdateRequest {
   form: ApplicationForm
+}
+
+export interface ApplicationsResponse {
+  [key: string]: Application
 }
 
 export interface ApplicationResponse {

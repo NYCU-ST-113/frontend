@@ -250,7 +250,7 @@ const loadEmailHistory = () => {
   emailHistory.value = [
     {
       id: 'EMAIL_001',
-      subject: '申請審核通過通知 - 申請編號 APP-2024-001',
+      subject: '申請審核通過通知',
       recipients: ['wang@nycu.edu.tw', 'chen@nycu.edu.tw'],
       type: 'approval',
       status: 'sent',
@@ -271,7 +271,7 @@ const loadEmailHistory = () => {
       subject: '繳費提醒通知',
       recipients: ['lin@nycu.edu.tw'],
       type: 'reminder',
-      status: 'failed',
+      status: 'sent',
       sentTime: new Date('2024-05-30T14:20:00'),
       sentBy: 'admin001',
     },
@@ -325,7 +325,19 @@ const sendEmail = async () => {
   isSending.value = true
 
   try {
-    // 模擬 API 呼叫
+    await sendMail({
+      to: emailForm.recipientType === 'manual' ? emailForm.recipients : [emailForm.recipientType],
+      subject: emailForm.subject,
+      body: emailForm.content,
+      html_body: emailForm.content,
+      cc: [],
+      bcc: [],
+      sender: 'admin@nycu.edu.tw',
+      source_service: 'NYCU-SAS',
+      attachments: emailForm.attachments.map((file) => ({
+        [file.name]: file,
+      })),
+    })
     await new Promise((resolve) => setTimeout(resolve, 2000))
 
     // 添加到發送記錄
@@ -414,6 +426,7 @@ const initialize = () => {
 }
 
 // 組件掛載時初始化
+import { sendMail } from '@/services/mail'
 import { onMounted } from 'vue'
 onMounted(() => {
   initialize()
@@ -443,9 +456,10 @@ onMounted(() => {
             <template #content>
               <div class="space-y-6">
                 <!-- 模板選擇 -->
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2"> 選擇郵件模板 </label>
-                  <Dropdown
+                <!--
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2"> 選擇郵件模板 </label>
+                    <Dropdown
                     v-model="emailForm.templateType"
                     :options="templateTypes"
                     option-label="label"
@@ -453,8 +467,9 @@ onMounted(() => {
                     placeholder="請選擇郵件模板"
                     class="w-full"
                     :loading="isLoadingTemplates"
-                  />
-                </div>
+                    />
+                  </div>
+                -->
 
                 <!-- 收件人設定 -->
                 <div>
@@ -523,13 +538,16 @@ onMounted(() => {
                     rows="12"
                     class="w-full"
                   />
-                  <small class="text-gray-500 mt-1 block">
-                    可使用變數：{APPLICANT_NAME}, {APPLICATION_ID}, {APPLY_DATE}, {DEPARTMENT} 等
-                  </small>
+                  <!--
+                    <small class="text-gray-500 mt-1 block">
+                      可使用變數：{APPLICANT_NAME}, {APPLICATION_ID}, {APPLY_DATE}, {DEPARTMENT} 等
+                    </small>
+                  -->
                 </div>
 
                 <!-- 附件上傳 -->
                 <div>
+                  <!--
                   <label class="block text-sm font-medium text-gray-700 mb-2"> 附件 </label>
                   <FileUpload
                     mode="basic"
@@ -541,8 +559,11 @@ onMounted(() => {
                     class="w-full"
                     @select="onFileSelect"
                   />
+                -->
 
                   <!-- 已上傳附件列表 -->
+
+                  <!--
                   <div v-if="emailForm.attachments.length > 0" class="mt-2">
                     <div
                       v-for="(file, index) in emailForm.attachments"
@@ -557,15 +578,18 @@ onMounted(() => {
                       />
                     </div>
                   </div>
+                  -->
                 </div>
 
                 <!-- 發送選項 -->
-                <div>
-                  <div class="flex items-center gap-3">
-                    <Checkbox v-model="emailForm.sendImmediately" binary />
-                    <label class="text-sm font-medium text-gray-700">立即發送</label>
+                <!--
+                  <div>
+                    <div class="flex items-center gap-3">
+                      <Checkbox v-model="emailForm.sendImmediately" binary />
+                      <label class="text-sm font-medium text-gray-700">立即發送</label>
+                    </div>
                   </div>
-                </div>
+                -->
 
                 <!-- 操作按鈕 -->
                 <div class="flex justify-end gap-3 pt-4 border-t">

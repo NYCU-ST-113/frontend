@@ -2,13 +2,14 @@
 import { useToast } from 'primevue/usetoast'
 import { reactive, ref } from 'vue'
 
-// PrimeVue 組件
+import { createApplication } from '@/services/application'
+import { ApplicationStatus } from '@/types/application'
 import Button from 'primevue/button'
 import Calendar from 'primevue/calendar'
 import Card from 'primevue/card'
 import InputText from 'primevue/inputtext'
+import Textarea from 'primevue/textarea'
 
-// 定義表單資料類型
 interface ApplicationFormData {
   department: string
   applicant_account: string
@@ -22,9 +23,14 @@ interface ApplicationFormData {
   supervisor_id: string
   supervisor_email: string
   apply_date: Date | null
+
+  applicant_unit: string
+  domain_name: string
+  application_project: string
+  dns_manage_account: string
+  reason: string
 }
 
-// 定義錯誤訊息類型
 interface FormErrors {
   department?: string
   applicant_account?: string
@@ -38,9 +44,14 @@ interface FormErrors {
   supervisor_id?: string
   supervisor_email?: string
   apply_date?: string
+
+  applicant_unit?: string
+  domain_name?: string
+  application_project?: string
+  dns_manage_account?: string
+  reason?: string
 }
 
-// 定義驗證欄位類型
 interface ValidationField {
   key: keyof ApplicationFormData
   label: string
@@ -48,7 +59,6 @@ interface ValidationField {
 
 const toast = useToast()
 
-// 表單資料
 const formData = reactive<ApplicationFormData>({
   department: '',
   applicant_account: '',
@@ -62,22 +72,23 @@ const formData = reactive<ApplicationFormData>({
   supervisor_id: '',
   supervisor_email: '',
   apply_date: new Date(),
+
+  applicant_unit: '',
+  domain_name: '',
+  application_project: '',
+  dns_manage_account: '',
+  reason: '',
 })
 
-// 錯誤訊息
 const errors = reactive<FormErrors>({})
 
-// 提交狀態
 const isSubmitting = ref<boolean>(false)
 
-// 驗證規則
 const validateForm = (): boolean => {
-  // 清空錯誤
   Object.keys(errors).forEach((key) => delete errors[key as keyof FormErrors])
 
   let isValid = true
 
-  // 必填欄位驗證
   const requiredFields: ValidationField[] = [
     { key: 'department', label: '部門' },
     { key: 'applicant_account', label: '申請人帳號' },
@@ -91,6 +102,11 @@ const validateForm = (): boolean => {
     { key: 'supervisor_id', label: '主管編號' },
     { key: 'supervisor_email', label: '主管電子郵件' },
     { key: 'apply_date', label: '申請日期' },
+    { key: 'applicant_unit', label: '申請人單位' },
+    { key: 'domain_name', label: '網域名稱' },
+    { key: 'application_project', label: '申請專案' },
+    { key: 'dns_manage_account', label: 'DNS管理帳號' },
+    { key: 'reason', label: '申請原因' },
   ]
 
   requiredFields.forEach((field: ValidationField) => {
@@ -101,7 +117,6 @@ const validateForm = (): boolean => {
     }
   })
 
-  // Email 格式驗證
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   const emailFields: (keyof ApplicationFormData)[] = [
     'applicant_email',
@@ -117,7 +132,6 @@ const validateForm = (): boolean => {
     }
   })
 
-  // 電話號碼格式驗證 (簡單的台灣電話號碼格式)
   const phoneRegex = /^[0-9\-\+\(\)\s]+$/
   const phoneFields: (keyof ApplicationFormData)[] = ['applicant_phone', 'tech_contact_phone']
 
@@ -129,10 +143,16 @@ const validateForm = (): boolean => {
     }
   })
 
+  const domainRegex =
+    /^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*$/
+  if (formData.domain_name && !domainRegex.test(formData.domain_name)) {
+    errors.domain_name = '請輸入正確的網域名稱格式'
+    isValid = false
+  }
+
   return isValid
 }
 
-// 提交表單
 const submitForm = async (): Promise<void> => {
   if (!validateForm()) {
     toast.add({
@@ -147,26 +167,50 @@ const submitForm = async (): Promise<void> => {
   isSubmitting.value = true
 
   try {
-    // 模擬 API 呼叫
-    await new Promise((resolve) => setTimeout(resolve, 2000))
+    const applicationForm = {
+      department: formData.department,
+      applicant_account: formData.applicant_account,
+      applicant_name: formData.applicant_name,
+      applicant_phone: formData.applicant_phone,
+      applicant_email: formData.applicant_email,
+      tech_contact_name: formData.tech_contact_name,
+      tech_contact_phone: formData.tech_contact_phone,
+      tech_contact_email: formData.tech_contact_email,
+      supervisor_name: formData.supervisor_name,
+      supervisor_id: formData.supervisor_id,
+      supervisor_email: formData.supervisor_email,
+      apply_date: formData.apply_date?.toISOString() || new Date().toISOString(),
+      status: ApplicationStatus.pending,
+    }
+    const dnsForm = {
+      applicant_unit: formData.applicant_unit,
+      domain_name: formData.domain_name,
+      application_project: formData.application_project,
+      dns_manage_account: formData.dns_manage_account,
+      reason: formData.reason,
+    }
+    await createApplication(applicationForm, dnsForm)
 
     console.log('提交的表單資料:', formData)
 
     toast.add({
       severity: 'success',
-      summary: '申請提交成功',
-      detail: '您的申請已成功提交，請等待審核結果',
+      summary: '申請成功',
+      detail: '您已成功申請，請等待審核結果',
       life: 3000,
     })
 
-    // 可以在這裡添加實際的 API 呼叫邏輯
-    // await api.submitApplication(formData)
+    await new Promise(() =>
+      setTimeout(() => {
+        window.location.href = '/applications'
+      }, 1000),
+    )
   } catch (error) {
-    console.error('提交失敗:', error)
+    console.error('申請失敗:', error)
     toast.add({
       severity: 'error',
-      summary: '提交失敗',
-      detail: '申請提交時發生錯誤，請稍後再試',
+      summary: '申請失敗',
+      detail: '申請失敗，請稍後再試',
       life: 3000,
     })
   } finally {
@@ -174,7 +218,6 @@ const submitForm = async (): Promise<void> => {
   }
 }
 
-// 重置表單
 const resetForm = (): void => {
   Object.keys(formData).forEach((key: string) => {
     const typedKey = key as keyof ApplicationFormData
@@ -194,7 +237,6 @@ const resetForm = (): void => {
   })
 }
 
-// 如果需要暴露給父組件使用的方法或資料
 defineExpose({
   formData,
   submitForm,
@@ -308,6 +350,22 @@ defineExpose({
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div class="flex flex-col">
+                <label for="applicant_unit" class="font-medium text-gray-700 mb-2 text-sm">
+                  申請人單位 <span class="text-red-500">*</span>
+                </label>
+                <InputText
+                  id="applicant_unit"
+                  v-model="formData.applicant_unit"
+                  :class="{ 'p-invalid': errors.applicant_unit }"
+                  placeholder="請輸入申請人單位"
+                  class="w-full"
+                />
+                <small v-if="errors.applicant_unit" class="text-red-500 text-xs mt-1">{{
+                  errors.applicant_unit
+                }}</small>
+              </div>
+
+              <div class="flex flex-col">
                 <label for="applicant_phone" class="font-medium text-gray-700 mb-2 text-sm">
                   申請人電話 <span class="text-red-500">*</span>
                 </label>
@@ -322,7 +380,9 @@ defineExpose({
                   errors.applicant_phone
                 }}</small>
               </div>
+            </div>
 
+            <div class="grid grid-cols-1 gap-4 mb-4">
               <div class="flex flex-col">
                 <label for="applicant_email" class="font-medium text-gray-700 mb-2 text-sm">
                   申請人電子郵件 <span class="text-red-500">*</span>
@@ -468,6 +528,87 @@ defineExpose({
             </div>
           </div>
 
+          <!-- 申請項目資訊 -->
+          <div class="form-section">
+            <div
+              class="flex items-center gap-2 text-gray-700 text-lg font-semibold mb-4 pb-2 border-b-2 border-gray-200"
+            >
+              <i class="pi pi-folder"></i>
+              申請項目資訊
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div class="flex flex-col">
+                <label for="domain_name" class="font-medium text-gray-700 mb-2 text-sm">
+                  網域名稱 <span class="text-red-500">*</span>
+                </label>
+                <InputText
+                  id="domain_name"
+                  v-model="formData.domain_name"
+                  :class="{ 'p-invalid': errors.domain_name }"
+                  placeholder="例如：example.com"
+                  class="w-full"
+                />
+                <small v-if="errors.domain_name" class="text-red-500 text-xs mt-1">{{
+                  errors.domain_name
+                }}</small>
+              </div>
+
+              <div class="flex flex-col">
+                <label for="dns_manage_account" class="font-medium text-gray-700 mb-2 text-sm">
+                  DNS管理帳號 <span class="text-red-500">*</span>
+                </label>
+                <InputText
+                  id="dns_manage_account"
+                  v-model="formData.dns_manage_account"
+                  :class="{ 'p-invalid': errors.dns_manage_account }"
+                  placeholder="請輸入DNS管理帳號"
+                  class="w-full"
+                />
+                <small v-if="errors.dns_manage_account" class="text-red-500 text-xs mt-1">{{
+                  errors.dns_manage_account
+                }}</small>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 gap-4 mb-4">
+              <div class="flex flex-col">
+                <label for="application_project" class="font-medium text-gray-700 mb-2 text-sm">
+                  申請專案 <span class="text-red-500">*</span>
+                </label>
+                <InputText
+                  id="application_project"
+                  v-model="formData.application_project"
+                  :class="{ 'p-invalid': errors.application_project }"
+                  placeholder="請輸入申請專案名稱"
+                  class="w-full"
+                />
+                <small v-if="errors.application_project" class="text-red-500 text-xs mt-1">{{
+                  errors.application_project
+                }}</small>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 gap-4 mb-4">
+              <div class="flex flex-col">
+                <label for="reason" class="font-medium text-gray-700 mb-2 text-sm">
+                  申請原因 <span class="text-red-500">*</span>
+                </label>
+                <Textarea
+                  id="reason"
+                  v-model="formData.reason"
+                  :class="{ 'p-invalid': errors.reason }"
+                  placeholder="請詳細說明申請原因..."
+                  rows="4"
+                  class="w-full"
+                />
+                <small v-if="errors.reason" class="text-red-500 text-xs mt-1">{{
+                  errors.reason
+                }}</small>
+              </div>
+            </div>
+          </div>
+
           <!-- 提交按鈕 -->
           <div class="text-center mt-8 pt-8 border-t border-gray-200">
             <Button
@@ -489,4 +630,6 @@ defineExpose({
       </template>
     </Card>
   </div>
+
+  <Toast />
 </template>

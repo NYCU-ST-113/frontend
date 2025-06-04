@@ -11,25 +11,26 @@ export enum PaymentStatus {
   failed = 'Failed',
 }
 
-export interface Payment {
-  id: string
+export interface PaymentDto {
+  payment_id: string
   service_id: string
+  service_name: string
   amount: number
   user_id: string
-  status: string
-  created_at: Date
   email: string
+  application_reason: string
+  status: string
+  created_at: string
 }
 
-export interface PaymentCreateRequest {
+export interface Payment {
+  id: string
   serviceId: string
+  serviceName: string
   amount: number
   userId: string
-  status: string
   email: string
-}
-
-export interface PaymentUpdateRequest {
-  id: string
+  applicationReason: string
   status: string
+  createdAt: string
 }

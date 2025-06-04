@@ -1,8 +1,8 @@
 import * as api from '@/services/api/mail'
 import type { TemplateMailRequest } from '@/types/mail'
 
-export const sendMail = async () => {
-  const response = await api.sendMail()
+export const sendMail = async (data: any) => {
+  const response = await api.sendMail(data)
   return response.data
 }
 

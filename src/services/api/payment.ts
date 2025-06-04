@@ -1,17 +1,25 @@
-import type { PaymentCreateRequest, PaymentUpdateRequest } from '@/types/payment'
+import type { PaymentDto } from '@/types/payment'
 import http from './http'
 
-const prefix = 'payments'
+const prefix = 'payments/payments'
 
-export const createPayment = async (data: PaymentCreateRequest) => {
-  return await http.post(`/${prefix}/create`, data)
+export const createPayment = async (data: PaymentDto) => {
+  return await http.post(`/${prefix}/apply`, data)
+}
+
+export const getAllPayments = async () => {
+  return await http.get(`/${prefix}`)
 }
 
 export const getPaymentById = async (id: string) => {
   return await http.get(`/${prefix}/${id}/info`)
 }
 
-export const updatePayment = async (id: string, data: PaymentUpdateRequest) => {
+export const getUserPayments = async (userId: string) => {
+  return await http.get(`/${prefix}/user/${userId}`)
+}
+
+export const updatePayment = async (id: string, data: { status: string }) => {
   return await http.put(`/${prefix}/${id}`, data)
 }
 

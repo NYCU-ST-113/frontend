@@ -6,9 +6,11 @@ import AdminMailPage from '@/pages/AdminMailPage.vue'
 import AdminPaymentsPage from '@/pages/AdminPaymentsPage.vue'
 import AdminProfilePage from '@/pages/AdminProfilePage.vue'
 import ApplicationsPage from '@/pages/ApplicationsPage.vue'
+import CallbackPage from '@/pages/CallbackPage.vue'
 import CreateApplicationPage from '@/pages/CreateApplicationPage.vue'
 import PaymentsPage from '@/pages/PaymentsPage.vue'
 import TermsPage from '@/pages/TermsPage.vue'
+import { useAuthStore } from '@/stores/auth'
 import { createRouter, createWebHistory } from 'vue-router'
 import DashboardPage from '../pages/DashboardPage.vue'
 import LoginPage from '../pages/LoginPage.vue'
@@ -20,6 +22,11 @@ const router = createRouter({
       path: '/login',
       name: 'login',
       component: LoginPage,
+    },
+    {
+      path: '/auth/callback',
+      name: 'callback',
+      component: CallbackPage,
     },
     {
       path: '/',
@@ -86,13 +93,15 @@ const router = createRouter({
   ],
 })
 
-// router.beforeEach((to, _, next) => {
-//   const isAuthenticated = localStorage.getItem('isAuthenticated')
-//   if (to.name !== 'login' && !isAuthenticated) {
-//     next({ name: 'login' })
-//   } else {
-//     next()
-//   }
-// })
+router.beforeEach((to, _, next) => {
+  const authStore = useAuthStore()
+  const isAuthenticated = authStore.isAuthenticated()
+
+  if (to.name !== 'login' && to.name !== 'callback' && !isAuthenticated) {
+    next({ name: 'login' })
+  } else {
+    next()
+  }
+})
 
 export default router

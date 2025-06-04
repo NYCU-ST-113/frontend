@@ -3,6 +3,9 @@ import { useToast } from 'primevue/usetoast'
 import { computed, onMounted, reactive, ref } from 'vue'
 
 // PrimeVue 組件
+import { getAllApplications } from '@/services/application'
+import { getAllPayments } from '@/services/payment'
+import { ApplicationStatus } from '@/types/application'
 import Badge from 'primevue/badge'
 import Button from 'primevue/button'
 import Card from 'primevue/card'
@@ -64,12 +67,21 @@ interface QuickStats {
 
 const toast = useToast()
 
+const applicationsCount = ref(0)
+const approvedApplicationsCount = ref(0)
+const pendingApplicationsCount = ref(0)
+const rejectedApplicationsCount = ref(0)
+
+const paymentsCount = ref(0)
+const approvedPaymentsCount = ref(0)
+const pendingPaymentsCount = ref(0)
+const canceledPaymentsCount = ref(0)
+
 // 系統橫幅
 const systemBanner = ref<SystemBanner | null>(null)
 
 // 公告資料
 const announcements = ref<Announcement[]>([])
-// const selectedAnnouncement = ref<Announcement | null>(null)
 
 // 申請狀態統計
 const applicationStats = reactive<ApplicationStatus>({
@@ -104,10 +116,6 @@ const loading = ref(true)
 const pendingApplicationsPercentage = computed(() => {
   return applicationStats.total > 0 ? (applicationStats.pending / applicationStats.total) * 100 : 0
 })
-
-// const overduePaymentsPercentage = computed(() => {
-//   return paymentStats.total > 0 ? (paymentStats.overdue / paymentStats.total) * 100 : 0
-// })
 
 // 載入系統橫幅
 const loadSystemBanner = () => {
@@ -364,13 +372,50 @@ const closeBanner = () => {
   systemBanner.value = null
 }
 
+// 查看所有活動
+const viewAllActivities = () => {
+  toast.add({
+    severity: 'info',
+    summary: '導航',
+    detail: '正在導向活動頁面...',
+    life: 2000,
+  })
+  // 這裡可以加入路由導航邏輯
+  // router.push('/activities')
+}
+
+// 查看所有公告
+const viewAllAnnouncements = () => {
+  toast.add({
+    severity: 'info',
+    summary: '導航',
+    detail: '正在導向公告頁面...',
+    life: 2000,
+  })
+  // 這裡可以加入路由導航邏輯
+  // router.push('/announcements')
+}
+
 // 初始化資料
-const initializeData = async () => {
+const fetchData = async () => {
   loading.value = true
 
   try {
-    // 模擬 API 載入時間
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+    const applications = await getAllApplications()
+    applicationsCount.value = applications.length
+    applications.forEach((app) => {
+      if (app.base.status === ApplicationStatus.approved) approvedApplicationsCount.value++
+      if (app.base.status === ApplicationStatus.pending) pendingApplicationsCount.value++
+      if (app.base.status === ApplicationStatus.rejected) rejectedApplicationsCount.value++
+    })
+
+    const payments = await getAllPayments()
+    paymentsCount.value = payments.length
+    payments.forEach((payment) => {
+      if (payment.status === 'Paid') approvedPaymentsCount.value++
+      if (payment.status === 'Pending') pendingPaymentsCount.value++
+      if (payment.status === 'Failed') canceledPaymentsCount.value++
+    })
 
     loadSystemBanner()
     loadAnnouncements()
@@ -394,7 +439,7 @@ const initializeData = async () => {
 
 // 組件掛載
 onMounted(() => {
-  initializeData()
+  fetchData()
 })
 </script>
 
@@ -466,25 +511,28 @@ onMounted(() => {
             <div class="flex justify-between items-center">
               <span class="text-gray-600">正在審核</span>
               <div class="flex items-center gap-2">
-                <Badge :value="applicationStats.pending" severity="warning" />
+                <Badge :value="pendingApplicationsCount" severity="warning" />
                 <span class="text-sm text-gray-500"
-                  >{{ pendingApplicationsPercentage.toFixed(1) }}%</span
+                  >{{ ((pendingApplicationsCount / applicationsCount) * 100).toFixed(1) }}%</span
                 >
               </div>
             </div>
-            <ProgressBar :value="pendingApplicationsPercentage" class="h-2" />
+            <ProgressBar
+              :value="Math.floor((pendingApplicationsCount / applicationsCount) * 100)"
+              class="h-2"
+            />
 
             <div class="grid grid-cols-3 gap-4 pt-4 border-t">
               <div class="text-center">
-                <p class="text-2xl font-bold text-green-600">{{ applicationStats.approved }}</p>
+                <p class="text-2xl font-bold text-green-600">{{ approvedApplicationsCount }}</p>
                 <p class="text-sm text-gray-600">已通過</p>
               </div>
               <div class="text-center">
-                <p class="text-2xl font-bold text-orange-600">{{ applicationStats.pending }}</p>
+                <p class="text-2xl font-bold text-orange-600">{{ pendingApplicationsCount }}</p>
                 <p class="text-sm text-gray-600">審核中</p>
               </div>
               <div class="text-center">
-                <p class="text-2xl font-bold text-red-600">{{ applicationStats.rejected }}</p>
+                <p class="text-2xl font-bold text-red-600">{{ rejectedApplicationsCount }}</p>
                 <p class="text-sm text-gray-600">已拒絕</p>
               </div>
             </div>
@@ -505,28 +553,28 @@ onMounted(() => {
             <div class="flex justify-between items-center">
               <span class="text-gray-600">待繳費</span>
               <div class="flex items-center gap-2">
-                <Badge :value="paymentStats.pendingPayment" severity="info" />
+                <Badge :value="pendingPaymentsCount" severity="info" />
                 <span class="text-sm text-gray-500">
-                  {{ ((paymentStats.pendingPayment / paymentStats.total) * 100).toFixed(1) }}%
+                  {{ ((pendingPaymentsCount / paymentsCount) * 100).toFixed(1) }}%
                 </span>
               </div>
             </div>
             <ProgressBar
-              :value="(paymentStats.pendingPayment / paymentStats.total) * 100"
+              :value="Math.floor((pendingPaymentsCount / paymentsCount) * 100)"
               class="h-2"
             />
 
             <div class="grid grid-cols-3 gap-4 pt-4 border-t">
               <div class="text-center">
-                <p class="text-2xl font-bold text-green-600">{{ paymentStats.completed }}</p>
+                <p class="text-2xl font-bold text-green-600">{{ approvedPaymentsCount }}</p>
                 <p class="text-sm text-gray-600">已完成</p>
               </div>
               <div class="text-center">
-                <p class="text-2xl font-bold text-blue-600">{{ paymentStats.pendingPayment }}</p>
+                <p class="text-2xl font-bold text-blue-600">{{ pendingPaymentsCount }}</p>
                 <p class="text-sm text-gray-600">待繳費</p>
               </div>
               <div class="text-center">
-                <p class="text-2xl font-bold text-red-600">{{ paymentStats.overdue }}</p>
+                <p class="text-2xl font-bold text-red-600">{{ canceledPaymentsCount }}</p>
                 <p class="text-sm text-gray-600">逾期</p>
               </div>
             </div>
@@ -560,7 +608,12 @@ onMounted(() => {
               <i class="pi pi-megaphone text-orange-600"></i>
               <h3 class="text-lg font-semibold">系統公告</h3>
             </div>
-            <Button label="查看全部" link class="p-button-sm" />
+            <Button
+              label="查看全部"
+              link
+              class="p-button-sm text-orange-600 hover:bg-orange-50"
+              @click="viewAllAnnouncements"
+            />
           </div>
         </template>
         <template #content>
@@ -568,7 +621,7 @@ onMounted(() => {
             <div
               v-for="announcement in announcements"
               :key="announcement.id"
-              class="p-3 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+              class="p-3 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors [display:-webkit-box] [-webkit-line-clamp:2] [-webkit-box-orient:vertical]"
               :class="{ 'bg-blue-50 border-blue-200': !announcement.isRead }"
               @click="markAsRead(announcement)"
             >
@@ -583,14 +636,18 @@ onMounted(() => {
                   <div v-if="!announcement.isRead" class="w-2 h-2 bg-blue-500 rounded-full"></div>
                 </div>
               </div>
-              <p class="text-sm text-gray-600 mb-2 line-clamp-2">{{ announcement.content }}</p>
+              <p
+                class="text-sm text-gray-600 mb-2 [display:-webkit-box] [-webkit-line-clamp:2] [-webkit-box-orient:vertical] [overflow:hidden]"
+              >
+                {{ announcement.content }}
+              </p>
               <p class="text-xs text-gray-500">{{ formatTime(announcement.date) }}</p>
             </div>
           </div>
         </template>
       </Card>
 
-      <!-- 最近活動 -->
+      <!-- 最近活動 - 使用 PrimeVue Timeline -->
       <Card>
         <template #header>
           <div class="flex items-center justify-between p-4 pb-0">
@@ -598,29 +655,47 @@ onMounted(() => {
               <i class="pi pi-history text-indigo-600"></i>
               <h3 class="text-lg font-semibold">最近活動</h3>
             </div>
-            <Button label="查看全部" link class="p-button-sm" />
+            <Button
+              label="查看全部"
+              link
+              class="p-button-sm text-indigo-600 hover:bg-indigo-50"
+              @click="viewAllActivities"
+            />
           </div>
         </template>
         <template #content>
-          <Timeline :value="recentActivities" class="max-h-96 overflow-y-auto">
-            <template #marker="{ item }">
-              <div
-                :class="getActivityColor(item.type)"
-                class="flex items-center justify-center w-8 h-8 bg-white border-2 border-current rounded-full"
-              >
-                <i :class="getActivityIcon(item.type)" class="text-sm"></i>
-              </div>
-            </template>
-            <template #content="{ item }">
-              <div class="ml-4">
-                <div class="flex items-center gap-2 mb-1">
-                  <h5 class="font-medium text-gray-900">{{ item.action }}</h5>
-                  <span class="text-xs text-gray-500">{{ formatTime(item.timestamp) }}</span>
+          <div class="max-h-96 overflow-y-auto">
+            <Timeline
+              :value="recentActivities"
+              align="left"
+              class="[&_.p-timeline-event-marker]:!border-0 [&_.p-timeline-event-marker]:!bg-transparent [&_.p-timeline-event-content]:!pl-2 [&_.p-timeline-event-connector]:bg-gray-200 [&_.p-timeline-event-connector]:w-0.5 [&_.p-timeline-event]:!pl-0 [&_.p-timeline-event-opposite]:!hidden [&_.p-timeline]:!pl-0"
+            >
+              <template #marker="slotProps">
+                <div
+                  class="flex items-center justify-center w-8 h-8 rounded-full border-2 bg-white shadow-sm relative z-10"
+                  :class="`border-current ${getActivityColor(slotProps.item.type)}`"
+                >
+                  <i :class="getActivityIcon(slotProps.item.type)" class="text-xs"></i>
                 </div>
-                <p class="text-sm text-gray-600">{{ item.description }}</p>
-              </div>
-            </template>
-          </Timeline>
+              </template>
+
+              <template #content="slotProps">
+                <div class="pb-3 ml-2">
+                  <div class="flex flex-col gap-1">
+                    <div class="flex items-center justify-between">
+                      <h5 class="font-medium text-gray-900 text-sm">{{ slotProps.item.action }}</h5>
+                      <span class="text-xs text-gray-500 ml-2 whitespace-nowrap">{{
+                        formatTime(slotProps.item.timestamp)
+                      }}</span>
+                    </div>
+                    <p class="text-sm text-gray-600 leading-relaxed">
+                      {{ slotProps.item.description }}
+                    </p>
+                  </div>
+                </div>
+              </template>
+            </Timeline>
+          </div>
         </template>
       </Card>
     </div>

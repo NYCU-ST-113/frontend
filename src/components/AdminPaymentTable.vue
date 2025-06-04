@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { PaymentStatus } from '@/types/payment'
 import { useToast } from 'primevue/usetoast'
-import { onMounted, ref } from 'vue'
+import { ref } from 'vue'
 
 // PrimeVue 組件
+import { updatePayment } from '@/services/payment'
 import Button from 'primevue/button'
 import Column from 'primevue/column'
 import DataTable from 'primevue/datatable'
@@ -15,7 +16,11 @@ import Tag from 'primevue/tag'
 import Textarea from 'primevue/textarea'
 import Toast from 'primevue/toast'
 
-const payments = ref()
+defineProps<{
+  isLoading: boolean
+  data: any[]
+}>()
+
 const expandedRows = ref({})
 const toast = useToast()
 
@@ -23,77 +28,29 @@ const toast = useToast()
 const showEditDialog = ref(false)
 const selectedPayment = ref<any>(null)
 const editForm = ref({
-  amount: 0,
-  status: '',
+  paymentAmount: 0,
+  paymentStatus: '',
   adminNote: '',
 })
 const isProcessing = ref(false)
 
 // 狀態選項
 const statusOptions = [
-  { label: '新申請', value: PaymentStatus.pending },
   { label: '待繳費', value: PaymentStatus.pending },
   { label: '已繳費', value: PaymentStatus.paid },
-  { label: '繳費失敗', value: PaymentStatus.failed },
+  { label: '已取消', value: PaymentStatus.failed },
 ]
 
-onMounted(() => {
-  payments.value = [
-    {
-      id: '1',
-      serviceId: 'SVC001',
-      amount: 1500,
-      user_id: 'U001',
-      status: PaymentStatus.paid,
-      date: new Date('2024-05-01T10:00:00').toLocaleString(),
-      email: 'user1@example.com',
-      applicantName: '王小明',
-      department: '資訊工程學系',
-      adminNote: '已確認收款',
-      lastModified: new Date('2024-05-02T09:00:00').toLocaleString(),
-      modifiedBy: 'admin001',
-    },
-    {
-      id: '2',
-      serviceId: 'SVC002',
-      amount: 2000,
-      user_id: 'U002',
-      status: PaymentStatus.pending,
-      date: new Date('2024-05-03T14:30:00').toLocaleString(),
-      email: 'user2@example.com',
-      applicantName: '林美麗',
-      department: '電機工程學系',
-      adminNote: '待確認繳費證明',
-      lastModified: new Date('2024-05-03T14:30:00').toLocaleString(),
-      modifiedBy: 'system',
-    },
-    {
-      id: '3',
-      serviceId: 'SVC003',
-      amount: 1200,
-      user_id: 'U003',
-      status: PaymentStatus.failed,
-      date: new Date('2024-05-05T09:15:00').toLocaleString(),
-      email: 'user3@example.com',
-      applicantName: '陳志強',
-      department: '應用數學系',
-      adminNote: '銀行轉帳失敗，需重新繳費',
-      lastModified: new Date('2024-05-05T16:20:00').toLocaleString(),
-      modifiedBy: 'admin002',
-    },
-  ]
-})
-
-const getSeverity = (application: { status: string }) => {
-  switch (application.status) {
+const getSeverity = (datum: { paymentStatus: string }) => {
+  switch (datum.paymentStatus) {
     case PaymentStatus.paid:
       return 'success'
     case PaymentStatus.pending:
       return 'info'
     case PaymentStatus.failed:
-      return 'danger'
-    default:
       return 'secondary'
+    default:
+      return 'contrast'
   }
 }
 
@@ -104,7 +61,7 @@ const getStatusText = (status: string) => {
     case PaymentStatus.pending:
       return '待繳費'
     case PaymentStatus.failed:
-      return '繳費失敗'
+      return '已取消'
     default:
       return status
   }
@@ -114,8 +71,8 @@ const getStatusText = (status: string) => {
 const openEditDialog = (payment: any) => {
   selectedPayment.value = payment
   editForm.value = {
-    amount: payment.amount,
-    status: payment.status,
+    paymentAmount: payment.paymentAmount,
+    paymentStatus: payment.paymentStatus,
     adminNote: payment.adminNote || '',
   }
   showEditDialog.value = true
@@ -126,7 +83,7 @@ const saveChanges = async () => {
   if (!selectedPayment.value) return
 
   // 驗證金額
-  if (!editForm.value.amount || editForm.value.amount <= 0) {
+  if (!editForm.value.paymentAmount || editForm.value.paymentAmount <= 0) {
     toast.add({
       severity: 'warn',
       summary: '驗證失敗',
@@ -139,26 +96,27 @@ const saveChanges = async () => {
   isProcessing.value = true
 
   try {
-    // 模擬 API 呼叫
-    await new Promise((resolve) => setTimeout(resolve, 1500))
+    await updatePayment(selectedPayment.value.paymentId, selectedPayment.value.paymentStatus)
 
     // 更新資料
-    const oldAmount = selectedPayment.value.amount
-    const oldStatus = selectedPayment.value.status
+    const oldAmount = selectedPayment.value.paymentAmount
+    const oldStatus = selectedPayment.value.paymentStatus
 
-    selectedPayment.value.amount = editForm.value.amount
-    selectedPayment.value.status = editForm.value.status
+    selectedPayment.value.paymentAmount = editForm.value.paymentAmount
+    selectedPayment.value.paymentStatus = editForm.value.paymentStatus
     selectedPayment.value.adminNote = editForm.value.adminNote
     selectedPayment.value.lastModified = new Date().toLocaleString()
     selectedPayment.value.modifiedBy = 'admin001' // 這裡應該是當前登入的管理員
 
     // 記錄變更
     const changes = []
-    if (oldAmount !== editForm.value.amount) {
-      changes.push(`金額: ${oldAmount} → ${editForm.value.amount}`)
+    if (oldAmount !== editForm.value.paymentAmount) {
+      changes.push(`金額: ${oldAmount} → ${editForm.value.paymentAmount}`)
     }
-    if (oldStatus !== editForm.value.status) {
-      changes.push(`狀態: ${getStatusText(oldStatus)} → ${getStatusText(editForm.value.status)}`)
+    if (oldStatus !== editForm.value.paymentStatus) {
+      changes.push(
+        `狀態: ${getStatusText(oldStatus)} → ${getStatusText(editForm.value.paymentStatus)}`,
+      )
     }
 
     toast.add({
@@ -184,11 +142,12 @@ const saveChanges = async () => {
 
 // 快速狀態變更
 const quickStatusChange = async (payment: any, newStatus: string) => {
-  const oldStatus = payment.status
+  const oldStatus = payment.paymentStatus
 
   try {
-    // 模擬 API 呼叫
-    payment.status = newStatus
+    await updatePayment(payment.paymentId, newStatus)
+
+    payment.paymentStatus = newStatus
     payment.lastModified = new Date().toLocaleString()
     payment.modifiedBy = 'admin001'
 
@@ -200,7 +159,7 @@ const quickStatusChange = async (payment: any, newStatus: string) => {
     })
   } catch (error) {
     console.error('狀態變更失敗:', error)
-    payment.status = oldStatus // 復原狀態
+    payment.paymentStatus = oldStatus // 復原狀態
     toast.add({
       severity: 'error',
       summary: '狀態變更失敗',
@@ -215,49 +174,53 @@ const closeEditDialog = () => {
   showEditDialog.value = false
   selectedPayment.value = null
   editForm.value = {
-    amount: 0,
-    status: '',
+    paymentAmount: 0,
+    paymentStatus: '',
     adminNote: '',
   }
 }
 
 // 格式化金額
-const formatCurrency = (amount: number) => {
+const formatCurrency = (paymentAmount: number) => {
   return new Intl.NumberFormat('zh-TW', {
     style: 'currency',
     currency: 'TWD',
-  }).format(amount)
+    maximumSignificantDigits: 4,
+  }).format(paymentAmount)
 }
 </script>
 
 <template>
   <div class="p-4">
     <div class="mb-4">
-      <h1 class="text-2xl font-bold text-gray-800 mb-2">繳費管理</h1>
-      <p class="text-gray-600">管理和處理所有繳費記錄，設定金額和更新狀態</p>
+      <h1 class="text-3xl font-bold text-gray-800 mb-2">繳費管理</h1>
+      <p class="text-lg text-gray-600">管理和處理所有繳費記錄，設定金額和更新狀態</p>
     </div>
 
-    <div class="card bg-white rounded-lg shadow">
+    <ProgressSpinner v-if="isLoading" />
+    <div v-else class="card bg-white rounded-lg shadow">
       <DataTable
         v-model:expanded-rows="expandedRows"
-        :value="payments"
-        data-key="id"
+        :value="data"
+        data-key="paymentId"
         table-style="min-width: 60rem"
-        class="p-datatable-sm"
+        class="p-datatable-sm px-4"
       >
+        <!--
         <template #header>
           <div class="flex flex-wrap justify-between items-center gap-2 p-4">
-            <h2 class="text-lg font-semibold text-gray-800">繳費記錄列表</h2>
+            <h2 class="text-lg font-semibold text-gray-800"></h2>
             <div class="flex gap-2">
               <Button icon="pi pi-refresh" label="重新整理" outlined size="small" />
               <Button icon="pi pi-download" label="匯出" outlined size="small" />
             </div>
           </div>
         </template>
+      -->
 
         <Column expander style="width: 5rem" />
-        <Column field="id" header="編號" sortable class="font-medium" />
-        <Column field="date" header="申請日期" sortable />
+        <Column field="index" header="編號" sortable class="font-medium" />
+        <Column field="paymentCreatedAt" header="申請日期" sortable />
         <Column header="申請人">
           <template #body="slotProps">
             <div>
@@ -266,17 +229,17 @@ const formatCurrency = (amount: number) => {
             </div>
           </template>
         </Column>
-        <Column field="amount" header="金額" sortable>
+        <Column field="paymentAmount" header="金額" sortable>
           <template #body="slotProps">
             <span class="font-semibold text-green-600">
-              {{ formatCurrency(slotProps.data.amount) }}
+              {{ formatCurrency(slotProps.data.paymentAmount) }}
             </span>
           </template>
         </Column>
         <Column header="狀態" style="width: 10rem">
           <template #body="slotProps">
             <Tag
-              :value="getStatusText(slotProps.data.status)"
+              :value="getStatusText(slotProps.data.paymentStatus)"
               :severity="getSeverity(slotProps.data)"
               class="text-xs"
             />
@@ -286,7 +249,7 @@ const formatCurrency = (amount: number) => {
           <template #body="slotProps">
             <div class="flex gap-1">
               <Button
-                v-if="slotProps.data.status !== PaymentStatus.paid"
+                v-if="slotProps.data.paymentStatus !== PaymentStatus.paid"
                 icon="pi pi-check"
                 size="small"
                 severity="success"
@@ -294,19 +257,19 @@ const formatCurrency = (amount: number) => {
                 @click="quickStatusChange(slotProps.data, PaymentStatus.paid)"
               />
               <Button
-                v-if="slotProps.data.status !== PaymentStatus.pending"
+                v-if="slotProps.data.paymentStatus !== PaymentStatus.pending"
                 icon="pi pi-clock"
                 size="small"
-                severity="warning"
+                severity="info"
                 title="標記為待繳費"
                 @click="quickStatusChange(slotProps.data, PaymentStatus.pending)"
               />
               <Button
-                v-if="slotProps.data.status !== PaymentStatus.failed"
+                v-if="slotProps.data.paymentStatus !== PaymentStatus.failed"
                 icon="pi pi-times"
                 size="small"
-                severity="danger"
-                title="標記為繳費失敗"
+                severity="secondary"
+                title="標記為已取消"
                 @click="quickStatusChange(slotProps.data, PaymentStatus.failed)"
               />
             </div>
@@ -329,40 +292,42 @@ const formatCurrency = (amount: number) => {
             <h4 class="text-lg font-medium mb-4 text-gray-800">詳細資訊</h4>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
               <div class="bg-white p-3 rounded-lg border">
-                <label class="text-sm font-medium text-gray-600">服務編號</label>
-                <p class="text-gray-900 font-semibold">{{ slotProps.data.serviceId }}</p>
+                <label class="text-sm font-medium text-gray-600">申請編號</label>
+                <p class="text-gray-900 font-semibold">{{ slotProps.data.paymentId }}</p>
               </div>
               <div class="bg-white p-3 rounded-lg border">
                 <label class="text-sm font-medium text-gray-600">使用者編號</label>
-                <p class="text-gray-900 font-semibold">{{ slotProps.data.user_id }}</p>
+                <p class="text-gray-900 font-semibold">{{ slotProps.data.applicantAccount }}</p>
               </div>
               <div class="bg-white p-3 rounded-lg border">
                 <label class="text-sm font-medium text-gray-600">電子郵件</label>
-                <p class="text-blue-600 font-semibold">{{ slotProps.data.email }}</p>
+                <p class="text-blue-600 font-semibold">{{ slotProps.data.applicantEmail }}</p>
               </div>
               <div class="bg-white p-3 rounded-lg border">
                 <label class="text-sm font-medium text-gray-600">申請日期</label>
-                <p class="text-gray-900 font-semibold">{{ slotProps.data.date }}</p>
+                <p class="text-gray-900 font-semibold">{{ slotProps.data.paymentCreatedAt }}</p>
               </div>
               <div class="bg-white p-3 rounded-lg border">
                 <label class="text-sm font-medium text-gray-600">金額</label>
                 <p class="text-green-600 font-semibold text-lg">
-                  {{ formatCurrency(slotProps.data.amount) }}
+                  {{ formatCurrency(slotProps.data.paymentAmount) }}
                 </p>
               </div>
-              <div class="bg-white p-3 rounded-lg border">
-                <label class="text-sm font-medium text-gray-600">當前狀態</label>
-                <div class="mt-1">
-                  <Tag
-                    :value="getStatusText(slotProps.data.status)"
+              <!--
+                <div class="bg-white p-3 rounded-lg border">
+                  <label class="text-sm font-medium text-gray-600">當前狀態</label>
+                  <div class="mt-1">
+                    <Tag
+                    :value="getStatusText(slotProps.data.paymentStatus)"
                     :severity="getSeverity(slotProps.data)"
-                  />
+                    />
+                  </div>
                 </div>
-              </div>
+              -->
             </div>
 
             <!-- 管理資訊 -->
-            <div class="bg-white p-4 rounded-lg border">
+            <div v-if="slotProps.data.lastModified" class="bg-white p-4 rounded-lg border">
               <h5 class="font-medium text-gray-800 mb-2">管理資訊</h5>
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                 <div>
@@ -396,22 +361,22 @@ const formatCurrency = (amount: number) => {
         <!-- 基本資訊顯示 -->
         <div class="bg-gray-50 p-4 rounded-lg">
           <h4 class="font-medium text-gray-800 mb-2">繳費記錄資訊</h4>
-          <div class="grid grid-cols-2 gap-2 text-sm">
+          <div class="grid grid-cols-1 gap-2 text-sm">
             <div>
-              <span class="text-gray-600">記錄編號：</span>
-              <span class="font-medium">{{ selectedPayment.id }}</span>
+              <span class="text-gray-600">申請編號：</span>
+              <span class="font-medium">{{ selectedPayment.paymentId }}</span>
             </div>
             <div>
               <span class="text-gray-600">申請人：</span>
               <span class="font-medium">{{ selectedPayment.applicantName }}</span>
             </div>
             <div>
-              <span class="text-gray-600">服務編號：</span>
-              <span>{{ selectedPayment.serviceId }}</span>
+              <span class="text-gray-600">服務名稱：</span>
+              <span>{{ selectedPayment.paymentServiceName }}</span>
             </div>
             <div>
               <span class="text-gray-600">申請日期：</span>
-              <span>{{ selectedPayment.date.split(' ')[0] }}</span>
+              <span>{{ selectedPayment.paymentCreatedAt.split(' ')[0] }}</span>
             </div>
           </div>
         </div>
@@ -423,10 +388,10 @@ const formatCurrency = (amount: number) => {
           <!-- 金額設定 -->
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">
-              繳費金額 <span class="text-red-500">*</span>
+              繳費金額<span class="text-red-500">*</span>
             </label>
             <InputNumber
-              v-model="editForm.amount"
+              v-model="editForm.paymentAmount"
               mode="currency"
               currency="TWD"
               locale="zh-TW"
@@ -442,7 +407,7 @@ const formatCurrency = (amount: number) => {
               繳費狀態 <span class="text-red-500">*</span>
             </label>
             <Dropdown
-              v-model="editForm.status"
+              v-model="editForm.paymentStatus"
               :options="statusOptions"
               option-label="label"
               option-value="value"
@@ -454,7 +419,7 @@ const formatCurrency = (amount: number) => {
 
           <!-- 管理員備註 -->
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2"> 管理員備註 </label>
+            <label class="block text-sm font-medium text-gray-700 mb-2">管理員備註</label>
             <Textarea
               v-model="editForm.adminNote"
               placeholder="請輸入管理員備註..."

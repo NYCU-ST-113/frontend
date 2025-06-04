@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { logout } from '@/services/auth'
 import { ref } from 'vue'
 
 const items = ref([
@@ -23,6 +24,18 @@ const items = ref([
     path: '/terms',
   },
 ])
+
+const handleLogout = () => {
+  try {
+    console.log('Logging out...')
+
+    logout()
+
+    window.location.href = '/login'
+  } catch (err) {
+    console.error('Logout failed:', err)
+  }
+}
 </script>
 
 <template>
@@ -56,16 +69,7 @@ const items = ref([
         </template>
         <template #end>
           <div class="flex items-center gap-2">
-            <Button as-child outlined size="small" severity="secondary">
-              <RouterLink
-                to="/"
-                class="p-button p-button-outlined p-button-secondary p-button-sm flex items-center gap-2"
-              >
-                <i class="pi pi-angle-left" />
-                <span>使用者</span>
-              </RouterLink>
-            </Button>
-            <Button as-child outlined size="small" severity="secondary">
+            <Button as-child outlined size="small" severity="secondary" data-test="admin-button">
               <RouterLink
                 to="/admin"
                 class="p-button p-button-outlined p-button-secondary p-button-sm flex items-center gap-2"
@@ -74,7 +78,14 @@ const items = ref([
                 <span>管理者</span>
               </RouterLink>
             </Button>
-            <Button icon="pi pi-user" outlined size="small" label="登出" />
+            <Button
+              icon="pi pi-user"
+              outlined
+              size="small"
+              label="登出"
+              data-test="logout-button"
+              @click="handleLogout"
+            />
           </div>
         </template>
       </Menubar>

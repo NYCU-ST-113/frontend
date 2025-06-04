@@ -7,15 +7,27 @@ export const login = () => {
 
 export const logout = async () => {
   const response = await api.logout()
+
+  localStorage.removeItem('token')
+  localStorage.removeItem('username')
+  localStorage.removeItem('email')
+
   return response.data
 }
 
 export const callback = async (code: string) => {
   const data = await api.callback(code)
-  localStorage.setItem('token', data['jwt-token'])
+
+  localStorage.setItem('token', 'Bearer ' + data.jwt_token)
+  localStorage.setItem('username', data.user_info.username)
+  localStorage.setItem('email', data.user_info.email)
+
+  console.log('callback', data.jwt_token)
+  console.log('callback', data.user_info)
 }
 
 export const getProfile = async () => {
   const data = await api.getProfile()
-  return data
+  console.log('getProfile', data)
+  return data.user
 }
