@@ -6,7 +6,7 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { getUserApplications } from '@/services/application'
 import { getUserPayments } from '@/services/payment'
 import { useAuthStore } from '@/stores/auth'
-import { ApplicationStatus, type Application } from '@/types/application'
+import { ApplicationStatus } from '@/types/application'
 import { PaymentStatus } from '@/types/payment'
 import { storeToRefs } from 'pinia'
 import Avatar from 'primevue/avatar'
@@ -66,12 +66,12 @@ const userInfo = reactive<UserInfo>({
 })
 
 // 簡化統計數據
-const stats = reactive({
-  pendingApplications: 2,
-  pendingPayments: 1,
-  totalApplications: 8,
-  totalPayments: 5,
-})
+// const stats = reactive({
+//   pendingApplications: 2,
+//   pendingPayments: 1,
+//   totalApplications: 8,
+//   totalPayments: 5,
+// })
 
 // 最近申請（只顯示最新的3筆）
 const recentApplications = ref<SimpleApplication[]>([])

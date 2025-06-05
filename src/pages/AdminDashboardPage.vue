@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useToast } from 'primevue/usetoast'
-import { computed, onMounted, reactive, ref } from 'vue'
+import { onMounted, reactive, ref } from 'vue'
 
 // PrimeVue 組件
 import { getAllApplications } from '@/services/application'
@@ -104,9 +104,9 @@ const chartOptions = ref()
 const loading = ref(true)
 
 // 計算屬性
-const pendingApplicationsPercentage = computed(() => {
-  return applicationStats.total > 0 ? (applicationStats.pending / applicationStats.total) * 100 : 0
-})
+// const pendingApplicationsPercentage = computed(() => {
+//   return applicationStats.total > 0 ? (applicationStats.pending / applicationStats.total) * 100 : 0
+// })
 
 // 載入系統橫幅
 const loadSystemBanner = () => {
