@@ -262,28 +262,32 @@ watch(
         <Column header="操作" class="w-64">
           <template #body="slotProps">
             <div class="flex gap-2">
-              <template v-if="!canReview(slotProps.data)">
-                <Button
-                  v-if="slotProps.data.status === ApplicationStatus.rejected"
-                  icon="pi pi-check"
-                  label="核可"
-                  size="small"
-                  severity="success"
-                  :loading="isProcessing(slotProps.data.id)"
-                  :disabled="isProcessing(slotProps.data.id)"
-                  @click="handleApprove(slotProps.data)"
-                />
-                <Button
-                  v-if="slotProps.data.status === ApplicationStatus.approved"
-                  icon="pi pi-times"
-                  label="拒絕"
-                  size="small"
-                  severity="danger"
-                  :loading="isProcessing(slotProps.data.id)"
-                  :disabled="isProcessing(slotProps.data.id)"
-                  @click="handleReject(slotProps.data)"
-                />
-              </template>
+              <Button
+                v-if="
+                  slotProps.data.status === ApplicationStatus.pending ||
+                  slotProps.data.status === ApplicationStatus.rejected
+                "
+                icon="pi pi-check"
+                label="核可"
+                size="small"
+                severity="success"
+                :loading="isProcessing(slotProps.data.id)"
+                :disabled="isProcessing(slotProps.data.id)"
+                @click="handleApprove(slotProps.data)"
+              />
+              <Button
+                v-if="
+                  slotProps.data.status === ApplicationStatus.pending ||
+                  slotProps.data.status === ApplicationStatus.approved
+                "
+                icon="pi pi-times"
+                label="拒絕"
+                size="small"
+                severity="danger"
+                :loading="isProcessing(slotProps.data.id)"
+                :disabled="isProcessing(slotProps.data.id)"
+                @click="handleReject(slotProps.data)"
+              />
               <Button
                 icon="pi pi-trash"
                 label="刪除"
